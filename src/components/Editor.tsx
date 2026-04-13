@@ -2,13 +2,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../store/useStore';
 import TextareaAutosize from 'react-textarea-autosize';
 import { cn } from '../lib/utils';
-import { Maximize2, Minimize2, Star, Pin, Settings2, Plus, Share, Image as ImageIcon, X, Send, Loader2 } from 'lucide-react';
+import { Maximize2, Minimize2, Star, Pin, Settings2, Plus, Share, Image as ImageIcon, X, Send, Loader2, Menu, PanelRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { isCommonWord } from '../lib/dictionary';
 import { supabase } from '../lib/supabase';
 
 export function Editor() {
-  const { documents, activeDocId, updateDocument, focusMode, setFocusMode, typewriterMode, selectedText, setSelectedText, userDictionary, spellCheckEnabled, addToDictionary } = useStore();
+  const { documents, activeDocId, updateDocument, focusMode, setFocusMode, typewriterMode, selectedText, setSelectedText, userDictionary, spellCheckEnabled, addToDictionary, isSidebarOpen, isRightPanelOpen, setSidebarOpen, setRightPanelOpen } = useStore();
   const activeDoc = documents.find(d => d.id === activeDocId);
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -158,16 +158,22 @@ export function Editor() {
 
   return (
     <div className="flex-1 flex flex-col relative h-screen bg-paper-texture overflow-hidden transition-all duration-700">
-      {/* Top Bar */}
       <div className={cn(
-        "absolute top-0 left-0 right-0 p-6 flex justify-between items-center z-20 transition-all duration-500",
+        "absolute top-0 left-0 right-0 p-4 md:p-6 flex justify-between items-center z-20 transition-all duration-500 bg-vintage-paper/50 backdrop-blur-sm lg:bg-transparent",
         focusMode ? "-translate-y-full opacity-0" : "translate-y-0 opacity-100"
       )}>
-        <div className="flex items-center gap-4">
-          <span className="text-xs font-bold uppercase tracking-widest opacity-50 border border-vintage-border px-3 py-1 rounded-full">
+        <div className="flex items-center gap-2 md:gap-4">
+          <button 
+            onClick={() => setSidebarOpen(!isSidebarOpen)}
+            className="p-2 lg:hidden rounded-full text-vintage-ink/60 hover:text-vintage-accent transition-colors"
+          >
+            <Menu size={20} />
+          </button>
+
+          <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest opacity-50 border border-vintage-border px-2 md:px-3 py-1 rounded-full hidden sm:inline-block">
             {activeDoc.category}
           </span>
-          <div className="flex gap-2">
+          <div className="flex gap-1 md:gap-2">
             <button 
               onClick={() => updateDocument(activeDoc.id, { isFavorite: !activeDoc.isFavorite })}
               className={cn("p-2 rounded-full transition-colors", activeDoc.isFavorite ? "text-vintage-accent" : "text-vintage-ink/40 hover:text-vintage-ink")}
@@ -190,13 +196,21 @@ export function Editor() {
           </div>
         </div>
         
-        <button 
-          onClick={() => setFocusMode(true)}
-          className="p-2 rounded-full text-vintage-ink/40 hover:text-vintage-ink transition-colors"
-          title="Focus Mode"
-        >
-          <Maximize2 size={18} />
-        </button>
+        <div className="flex items-center gap-1">
+          <button 
+            onClick={() => setFocusMode(true)}
+            className="p-2 rounded-full text-vintage-ink/40 hover:text-vintage-ink transition-colors"
+            title="Focus Mode"
+          >
+            <Maximize2 size={18} />
+          </button>
+          <button 
+            onClick={() => setRightPanelOpen(!isRightPanelOpen)}
+            className="p-2 lg:hidden rounded-full text-vintage-ink/60 hover:text-vintage-accent transition-colors"
+          >
+            <PanelRight size={20} />
+          </button>
+        </div>
       </div>
 
       {/* Focus Mode Exit Button */}

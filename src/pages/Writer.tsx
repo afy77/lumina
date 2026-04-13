@@ -7,9 +7,25 @@ import { useStore } from '../store/useStore';
 import { cn } from '../lib/utils';
 
 export function Writer() {
-  const { currentMood } = useStore();
+  const { currentMood, isSidebarOpen, isRightPanelOpen, setSidebarOpen, setRightPanelOpen } = useStore();
 
-  // Apply mood classes to body
+  // Handle auto-closing panels on mobile
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setSidebarOpen(false);
+        setRightPanelOpen(false);
+      } else {
+        setSidebarOpen(true);
+        setRightPanelOpen(true);
+      }
+    };
+    
+    handleResize(); // Initial check
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   useEffect(() => {
     document.body.className = cn(
       'text-vintage-ink selection:bg-vintage-accent selection:text-vintage-paper overflow-hidden transition-colors duration-1000',
@@ -19,11 +35,44 @@ export function Writer() {
   }, [currentMood]);
 
   return (
-    <div className="flex h-screen w-full overflow-hidden">
+    <div className="flex h-screen w-full overflow-hidden relative">
       <AudioPlayer />
-      <Sidebar />
-      <Editor />
-      <RightPanel />
+      
+      {/* Sidebar Overlay for Mobile */}
+      <div 
+        className={cn(
+          "fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300",
+          isSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
+        onClick={() => setSidebarOpen(false)}
+      />
+      
+      <div className={cn(
+        "fixed lg:relative inset-y-0 left-0 z-50 lg:z-0 transition-transform duration-300 lg:translate-x-0 w-72",
+        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        <Sidebar />
+      </div>
+
+      <main className="flex-1 min-w-0 h-full">
+        <Editor />
+      </main>
+
+      {/* RightPanel Overlay for Mobile */}
+      <div 
+        className={cn(
+          "fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300",
+          isRightPanelOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
+        onClick={() => setRightPanelOpen(false)}
+      />
+
+      <div className={cn(
+        "fixed lg:relative inset-y-0 right-0 z-50 lg:z-0 transition-transform duration-300 lg:translate-x-0 w-80",
+        isRightPanelOpen ? "translate-x-0" : "translate-x-full"
+      )}>
+        <RightPanel />
+      </div>
     </div>
   );
 }

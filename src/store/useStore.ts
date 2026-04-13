@@ -28,7 +28,8 @@ interface AppState {
   activeAudio: string | null;
   selectedText: string;
   userDictionary: string[];
-  spellCheckEnabled: boolean;
+  isSidebarOpen: boolean;
+  isRightPanelOpen: boolean;
   
   // Actions
   addDocument: (category?: Category) => void;
@@ -45,6 +46,8 @@ interface AppState {
   toggleSpellCheck: () => void;
   addToDictionary: (word: string) => void;
   removeFromDictionary: (word: string) => void;
+  setSidebarOpen: (open: boolean) => void;
+  setRightPanelOpen: (open: boolean) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -73,6 +76,8 @@ export const useStore = create<AppState>()(
       selectedText: '',
       userDictionary: [],
       spellCheckEnabled: true,
+      isSidebarOpen: true,
+      isRightPanelOpen: true,
 
       addDocument: (category = 'Draft Bebas') => {
         const newDoc: Document = {
@@ -126,6 +131,8 @@ export const useStore = create<AppState>()(
       removeFromDictionary: (word) => set((state) => ({
         userDictionary: state.userDictionary.filter(w => w !== word.toLowerCase().trim())
       })),
+      setSidebarOpen: (open) => set({ isSidebarOpen: open }),
+      setRightPanelOpen: (open) => set({ isRightPanelOpen: open }),
     }),
     {
       name: 'lumina-storage',
