@@ -28,7 +28,9 @@ export function RightPanel() {
     setAudioVolume,
     isAudioMuted,
     toggleAudioMute,
-    selectedText
+    selectedText,
+    toggleSpellCheck,
+    spellCheckEnabled
   } = useStore();
 
   const activeDoc = documents.find(d => d.id === activeDocId);
@@ -147,12 +149,14 @@ export function RightPanel() {
                   <button
                     key={mood.name}
                     onClick={() => setMood(mood.name)}
+                    onDoubleClick={() => toggleAudioMute()}
                     className={cn(
-                      "flex flex-col items-center justify-center gap-2 p-3 rounded-xl border transition-all duration-300",
+                      "flex flex-col items-center justify-center gap-2 p-3 rounded-xl border transition-all duration-300 select-none",
                       currentMood === mood.name 
                         ? "bg-vintage-ink text-vintage-paper border-vintage-ink shadow-md" 
                         : "border-vintage-border hover:bg-black/5 text-vintage-ink/70"
                     )}
+                    title="Klik 2x untuk mute/pause"
                   >
                     <mood.icon size={20} />
                     <span className="text-xs font-medium">{mood.name}</span>
@@ -184,9 +188,14 @@ export function RightPanel() {
                   />
                 </div>
                 
-                <div className="p-3 rounded-lg border border-vintage-border bg-black/5 text-sm flex items-center gap-3">
-                  <Music size={16} className="opacity-50" />
-                  <span className="opacity-80">Auto-play berdasarkan nuansa</span>
+                <div className="p-3 rounded-lg border border-vintage-border bg-black/5 text-sm flex flex-col gap-2">
+                  <div className="flex items-center gap-3">
+                    <Music size={16} className="opacity-50" />
+                    <span className="opacity-80 font-medium">Sedang diputar:</span>
+                  </div>
+                  <div className="text-xs italic opacity-60 ml-7">
+                    {getTrackName(currentMood)}
+                  </div>
                 </div>
               </div>
             </div>
@@ -208,6 +217,22 @@ export function RightPanel() {
                   </div>
                   <div className={cn("w-8 h-4 rounded-full transition-colors relative", typewriterMode ? "bg-vintage-accent" : "bg-vintage-border")}>
                     <div className={cn("absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform", typewriterMode ? "translate-x-4" : "translate-x-0.5")} />
+                  </div>
+                </button>
+
+                <button 
+                  onClick={toggleSpellCheck}
+                  className={cn(
+                    "w-full flex items-center justify-between p-3 rounded-lg border transition-all duration-300",
+                    spellCheckEnabled ? "border-vintage-ink bg-black/5" : "border-vintage-border hover:bg-black/5"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <Sparkles size={16} className={spellCheckEnabled ? "text-vintage-ink" : "opacity-50"} />
+                    <span className="text-sm font-medium">Bantuan Visual (Spell Check)</span>
+                  </div>
+                  <div className={cn("w-8 h-4 rounded-full transition-colors relative", spellCheckEnabled ? "bg-vintage-accent" : "bg-vintage-border")}>
+                    <div className={cn("absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform", spellCheckEnabled ? "translate-x-4" : "translate-x-0.5")} />
                   </div>
                 </button>
               </div>
@@ -296,4 +321,17 @@ function AIToolButton({ title, desc, onClick, disabled, isLoading }: { title: st
       {isLoading && <Loader2 size={16} className="animate-spin text-vintage-accent" />}
     </button>
   );
+}
+
+function getTrackName(mood: string) {
+  switch (mood) {
+    case 'Sunyi': return 'Ketenangan Sunyi (sunyi.mp3)';
+    case 'Hujan Malam': return 'Rintik Hujan (hujan.mp3)';
+    case 'Romantis': return 'Alunan Romantis (romantis.mp3)';
+    case 'Melankolis': return 'Melodi Melankolis (melankolis.mp3)';
+    case 'Morning Light': return 'Cahaya Pagi (morning.mp3)';
+    case 'Fantasy': return 'Dunia Fantasi (fantasy.mp3)';
+    case 'Dark Poetry': return 'Puisi Kelam (dark.mp3)';
+    default: return 'Suasana Klasik';
+  }
 }

@@ -27,6 +27,8 @@ interface AppState {
   isAudioMuted: boolean;
   activeAudio: string | null;
   selectedText: string;
+  userDictionary: string[];
+  spellCheckEnabled: boolean;
   
   // Actions
   addDocument: (category?: Category) => void;
@@ -40,6 +42,9 @@ interface AppState {
   setAudioVolume: (volume: number) => void;
   toggleAudioMute: () => void;
   setSelectedText: (text: string) => void;
+  toggleSpellCheck: () => void;
+  addToDictionary: (word: string) => void;
+  removeFromDictionary: (word: string) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -66,6 +71,8 @@ export const useStore = create<AppState>()(
       isAudioMuted: false,
       activeAudio: null,
       selectedText: '',
+      userDictionary: [],
+      spellCheckEnabled: true,
 
       addDocument: (category = 'Draft Bebas') => {
         const newDoc: Document = {
@@ -112,6 +119,13 @@ export const useStore = create<AppState>()(
       setAudioVolume: (volume) => set({ audioVolume: volume }),
       toggleAudioMute: () => set((state) => ({ isAudioMuted: !state.isAudioMuted })),
       setSelectedText: (text) => set({ selectedText: text }),
+      toggleSpellCheck: () => set((state) => ({ spellCheckEnabled: !state.spellCheckEnabled })),
+      addToDictionary: (word) => set((state) => ({ 
+        userDictionary: Array.from(new Set([...state.userDictionary, word.toLowerCase().trim()]))
+      })),
+      removeFromDictionary: (word) => set((state) => ({
+        userDictionary: state.userDictionary.filter(w => w !== word.toLowerCase().trim())
+      })),
     }),
     {
       name: 'lumina-storage',

@@ -1,20 +1,34 @@
 import React, { useEffect, useRef } from 'react';
 import { useStore } from '../store/useStore';
 
-// Mapping moods to audio URLs (using free ambient sounds or placeholders)
+// Mapping moods to audio URLs
+// TIPS: Jika Anda ingin menggunakan file MP3 sendiri:
+// 1. Simpan file MP3 Anda di folder 'public/audio/'
+// 2. Ganti URL di bawah menjadi '/audio/nama_file.mp3'
 const moodAudioMap: Record<string, string> = {
-  'Sunyi': 'https://cdn.pixabay.com/download/audio/2022/02/07/audio_c6f2e24021.mp3?filename=night-crickets-10172.mp3', // Crickets
-  'Hujan Malam': 'https://cdn.pixabay.com/download/audio/2021/08/09/audio_88447e769f.mp3?filename=rain-and-thunder-16705.mp3', // Rain
-  'Romantis': 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=soft-piano-100-bpm-121529.mp3', // Soft Piano
-  'Melankolis': 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=soft-piano-100-bpm-121529.mp3', // Sad Piano
-  'Morning Light': 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8c8a73467.mp3?filename=birds-morning-113396.mp3', // Birds
-  'Fantasy': 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=soft-piano-100-bpm-121529.mp3', // Ethereal
-  'Dark Poetry': 'https://cdn.pixabay.com/download/audio/2021/08/09/audio_88447e769f.mp3?filename=rain-and-thunder-16705.mp3', // Dark ambient
+  'Sunyi': '/audio/sunyi.mp3',
+  'Hujan Malam': '/audio/hujan.mp3', 
+  'Romantis': '/audio/romantis.mp3', 
+  'Melankolis': '/audio/melankolis.mp3', 
+  'Morning Light': '/audio/morning.mp3', 
+  'Fantasy': '/audio/fantasy.mp3', 
+  'Dark Poetry': '/audio/dark.mp3', 
 };
 
 export function AudioPlayer() {
   const { currentMood, audioVolume, isAudioMuted } = useStore();
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    const playAudio = () => {
+      if (audioRef.current && !isAudioMuted && audioRef.current.paused) {
+        audioRef.current.play().catch(e => console.log('Interaction play prevented:', e));
+      }
+    };
+
+    window.addEventListener('click', playAudio, { once: true });
+    return () => window.removeEventListener('click', playAudio);
+  }, [isAudioMuted]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -31,7 +45,14 @@ export function AudioPlayer() {
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = audioVolume;
-      audioRef.current.muted = isAudioMuted;
+      if (isAudioMuted) {
+        audioRef.current.pause();
+      } else {
+        // Only play if src is set
+        if (audioRef.current.src) {
+          audioRef.current.play().catch(e => console.log('Audio play prevented:', e));
+        }
+      }
     }
   }, [audioVolume, isAudioMuted]);
 
@@ -40,7 +61,6 @@ export function AudioPlayer() {
       ref={audioRef} 
       loop 
       className="hidden" 
-      crossOrigin="anonymous"
     />
   );
 }
