@@ -58,22 +58,33 @@ export function Landing() {
     fetchPoems();
   }, [selectedCategory, searchQuery]);
 
-  // Handle scroll lock
+  // Ensure body scroll is enabled and classes are reset when on landing page
+  useEffect(() => {
+    window.scrollTo(0, 0); 
+    document.body.style.overflow = "auto";
+    document.body.style.position = "static";
+  }, []);
+
+  // Handle scroll lock (Robust for Mobile)
   useEffect(() => {
     if (selectedPoem) {
-      document.body.style.overflow = 'hidden';
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
     } else {
-      document.body.style.overflow = 'auto';
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
     }
   }, [selectedPoem]);
 
-  // Ensure body scroll is enabled and classes are reset when on landing page
-  useEffect(() => {
-    document.body.className = "bg-vintage-paper text-vintage-ink font-cormorant selection:bg-vintage-accent selection:text-vintage-paper overflow-y-auto";
-  }, []);
-
   return (
-    <div className="min-h-screen bg-vintage-paper bg-paper-texture overflow-y-auto font-cormorant text-vintage-ink selection:bg-vintage-accent selection:text-vintage-paper scroll-smooth">
+    <div className="min-h-screen bg-vintage-paper bg-paper-texture font-cormorant text-vintage-ink selection:bg-vintage-accent selection:text-vintage-paper overflow-visible">
       <AnimatePresence>
         {selectedPoem && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10">
@@ -177,7 +188,7 @@ export function Landing() {
           </motion.div>
           
           <motion.h1 
-            className="font-cinzel text-6xl md:text-9xl font-bold mb-8 tracking-tighter text-vintage-ink drop-shadow-sm"
+            className="font-cinzel text-5xl sm:text-7xl md:text-9xl font-bold mb-6 md:mb-8 tracking-tighter text-vintage-ink drop-shadow-sm"
           >
             LUMINA
           </motion.h1>
@@ -225,8 +236,8 @@ export function Landing() {
       </section>
 
       {/* Explore Section */}
-      <main id="explore" className="max-w-7xl mx-auto px-6 py-32">
-        <div className="flex flex-col items-center text-center mb-24">
+      <main id="explore" className="max-w-7xl mx-auto px-6 pt-20 md:pt-32 pb-32">
+        <div className="flex flex-col items-center text-center mb-16 md:mb-24">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -234,20 +245,20 @@ export function Landing() {
             className="space-y-4"
           >
             <span className="text-xs font-bold uppercase tracking-[0.5em] text-vintage-accent opacity-60">The Community</span>
-            <h2 className="font-playfair text-4xl md:text-5xl font-bold">Karya-Karya Pilihan</h2>
+            <h2 className="font-playfair text-3xl md:text-5xl font-bold uppercase tracking-tight">Karya-Karya Pilihan</h2>
             <div className="w-16 h-1 bg-vintage-accent mx-auto" />
           </motion.div>
         </div>
 
-        <div className="sticky top-0 z-40 py-8 bg-vintage-paper/80 backdrop-blur-md mb-16 border-b border-vintage-border/50">
-          <div className="flex flex-col lg:flex-row justify-between items-center gap-8">
+        <div className="relative lg:sticky lg:top-0 z-40 py-6 md:py-8 bg-vintage-paper/95 lg:backdrop-blur-md mb-10 md:mb-16 border-b border-vintage-border/50">
+          <div className="flex flex-col lg:flex-row justify-between items-center gap-6 md:gap-8">
             {/* Categories */}
-            <div className="flex flex-wrap justify-center gap-2">
+            <div className="flex flex-wrap justify-center gap-x-2 gap-y-3 px-2">
               <button 
                 onClick={() => setSelectedCategory('Semua')}
                 className={cn(
-                  "px-6 py-2 rounded-full text-[10px] font-bold tracking-[0.2em] transition-all uppercase",
-                  selectedCategory === 'Semua' ? "bg-vintage-ink text-vintage-paper shadow-lg" : "hover:bg-black/5 opacity-50 hover:opacity-100"
+                  "px-4 md:px-6 py-2 rounded-full text-[10px] font-bold tracking-[0.2em] transition-all uppercase whitespace-nowrap",
+                  selectedCategory === 'Semua' ? "bg-vintage-ink text-vintage-paper shadow-lg" : "bg-black/5 hover:bg-black/10 opacity-60"
                 )}
               >
                 SEMUA
@@ -257,8 +268,8 @@ export function Landing() {
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
                   className={cn(
-                    "px-6 py-2 rounded-full text-[10px] font-bold tracking-[0.2em] transition-all uppercase",
-                    selectedCategory === cat ? "bg-vintage-ink text-vintage-paper shadow-lg" : "hover:bg-black/5 opacity-50 hover:opacity-100"
+                    "px-4 md:px-6 py-2 rounded-full text-[10px] font-bold tracking-[0.2em] transition-all uppercase whitespace-nowrap",
+                    selectedCategory === cat ? "bg-vintage-ink text-vintage-paper shadow-lg" : "bg-black/5 hover:bg-black/10 opacity-60"
                   )}
                 >
                   {cat}
