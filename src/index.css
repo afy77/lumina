@@ -64,8 +64,9 @@
   }
 }
 
-body {
-  @apply bg-vintage-paper text-vintage-ink font-cormorant selection:bg-vintage-accent selection:text-vintage-paper;
+html, body {
+  @apply bg-vintage-paper text-vintage-ink font-cormorant selection:bg-vintage-accent selection:text-vintage-paper overflow-x-hidden max-w-full;
+  width: 100vw;
 }
 
 /* Custom scrollbar for vintage feel */
