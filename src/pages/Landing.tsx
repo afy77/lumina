@@ -234,7 +234,7 @@ export function Landing() {
         )}
       </AnimatePresence>
 
-      <section className="relative w-full min-h-screen md:min-h-[85vh] flex flex-col items-center justify-center text-center px-6 border-b border-vintage-border bg-[radial-gradient(circle_at_center,_var(--color-vintage-paper-dark)_0%,_transparent_100%)]">
+      <section className="relative w-full min-h-[80vh] md:min-h-[85vh] flex flex-col items-center justify-center text-center px-6 border-b border-vintage-border bg-[radial-gradient(circle_at_center,_var(--color-vintage-paper-dark)_0%,_transparent_100%)]">
         <div className="absolute inset-0 bg-paper-texture opacity-30 pointer-events-none" />
         
         <div className="relative z-10 max-w-4xl mx-auto pt-32 pb-20 md:py-20">
@@ -251,22 +251,24 @@ export function Landing() {
         </div>
       </section>
 
-      <div id="explore" className="w-full max-w-7xl mx-auto px-4 md:px-6 pt-[500px] pb-20 md:py-32 scroll-mt-[500px]">
+      <div id="explore" />
+      <div className="w-full max-w-7xl mx-auto px-4 md:px-6 pt-16 md:pt-32 pb-20">
+        
         <div className="text-center mb-16">
           <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-vintage-accent opacity-60 mb-2 block">The Community</span>
-          <h2 className="font-playfair text-4xl md:text-5xl font-bold uppercase tracking-tight">Karya-Karya Pilihan</h2>
+          <h2 className="font-playfair text-3xl md:text-5xl font-bold uppercase tracking-tight">Karya-Karya Pilihan</h2>
           <div className="w-12 h-1 bg-vintage-accent mx-auto mt-6" />
         </div>
 
-        <div className="bg-vintage-paper/95 p-6 rounded-3xl border border-vintage-border shadow-soft mb-16">
-          <div className="flex flex-col lg:flex-row justify-between items-center gap-8">
+        <div className="bg-vintage-paper/95 p-4 md:p-6 rounded-3xl border border-vintage-border mb-16">
+          <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
             <div className="flex flex-wrap justify-center gap-2">
               {['Semua', ...categories].map(cat => (
                 <button 
                   key={cat}
                   onClick={() => setSelectedCategory(cat as any)}
                   className={cn(
-                    "px-5 py-2 rounded-full text-[10px] font-bold tracking-widest uppercase transition-all",
+                    "px-4 py-2 rounded-full text-[9px] font-bold tracking-widest uppercase transition-all",
                     selectedCategory === cat ? "bg-vintage-ink text-vintage-paper" : "bg-black/5 hover:bg-black/10 opacity-60"
                   )}
                 >
@@ -282,7 +284,7 @@ export function Landing() {
                 placeholder="Cari judul atau penyair..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-full border border-vintage-border bg-black/5 outline-none focus:ring-1 focus:ring-vintage-accent focus:border-vintage-accent transition-all text-sm font-serif italic"
+                className="w-full pl-12 pr-4 py-3 rounded-full border border-vintage-border bg-black/5 outline-none focus:ring-1 focus:ring-vintage-accent focus:border-vintage-accent transition-all text-xs font-serif italic"
               />
             </div>
           </div>
@@ -295,51 +297,78 @@ export function Landing() {
             <p className="tracking-[0.5em] uppercase text-xs font-bold">Menyusun Kata...</p>
           </div>
         ) : poems.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-12">
             {poems.map((poem, i) => (
               <motion.div 
                 key={poem.id}
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: (i % 4) * 0.1 }}
                 onClick={() => setSelectedPoem(poem)}
                 className="group cursor-pointer"
               >
-                <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] mb-6 shadow-[0_15px_35px_-10px_rgba(0,0,0,0.1)] group-hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.2)] transition-all duration-500">
-                  <img 
-                    src={poem.cover_url || 'https://images.unsplash.com/photo-1516410529446-2c777cb7366d?auto=format&fit=crop&q=80&w=400'} 
-                    alt={poem.title} 
-                    className="w-full h-full object-cover transition-transform duration-[2s] ease-out group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-vintage-ink/60 via-transparent to-transparent opacity-40 group-hover:opacity-70 transition-opacity duration-500" />
-                  
-                  <div className="absolute inset-0 p-6 flex flex-col justify-end transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
-                    <div className="flex justify-between items-center text-vintage-paper">
-                      <div className="flex items-center gap-2 text-xs font-bold tracking-widest">
-                        <Heart size={14} className="fill-vintage-accent text-vintage-accent" />
-                        {poem.likes_count}
+                {/* Mobile List Style */}
+                <div className="flex md:hidden items-center gap-4 p-4 rounded-2xl bg-black/5 hover:bg-black/10 transition-colors border border-vintage-border/5">
+                  <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0 shadow-sm border border-vintage-border/10">
+                    <img 
+                      src={poem.cover_url || 'https://images.unsplash.com/photo-1516410529446-2c777cb7366d?auto=format&fit=crop&q=80&w=400'} 
+                      alt={poem.title} 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-vintage-accent mb-1 block">
+                      {poem.category}
+                    </span>
+                    <h3 className="font-playfair text-xl font-bold leading-tight mb-2 truncate">
+                      {poem.title}
+                    </h3>
+                    <div className="flex items-center gap-2 text-[10px] opacity-40 uppercase tracking-widest font-bold">
+                      <div className="w-3 h-[1px] bg-vintage-ink" />
+                      <span className="truncate">{poem.author_name}</span>
+                    </div>
+                  </div>
+                  <ArrowRight size={16} className="opacity-20" />
+                </div>
+
+                {/* Desktop Grid Style */}
+                <div className="hidden md:block">
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] mb-6 shadow-[0_15px_35px_-10px_rgba(0,0,0,0.1)] group-hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.2)] transition-all duration-500">
+                    <img 
+                      src={poem.cover_url || 'https://images.unsplash.com/photo-1516410529446-2c777cb7366d?auto=format&fit=crop&q=80&w=400'} 
+                      alt={poem.title} 
+                      className="w-full h-full object-cover transition-transform duration-[2s] ease-out group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-vintage-ink/60 via-transparent to-transparent opacity-40 group-hover:opacity-70 transition-opacity duration-500" />
+                    
+                    <div className="absolute inset-0 p-6 flex flex-col justify-end transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+                      <div className="flex justify-between items-center text-vintage-paper">
+                        <div className="flex items-center gap-2 text-xs font-bold tracking-widest">
+                          <Heart size={14} className="fill-vintage-accent text-vintage-accent" />
+                          {poem.likes_count}
+                        </div>
+                        <div className="text-[10px] uppercase tracking-widest font-bold opacity-80">
+                          {Math.ceil(poem.content.split(' ').length / 200)} mnt baca
+                        </div>
                       </div>
-                      <div className="text-[10px] uppercase tracking-widest font-bold opacity-80">
-                        {Math.ceil(poem.content.split(' ').length / 200)} mnt baca
-                      </div>
+                    </div>
+
+                    <div className="absolute top-6 left-6">
+                      <span className="bg-vintage-paper/90 backdrop-blur-md text-vintage-ink text-[10px] font-bold uppercase tracking-[0.2em] px-4 py-1.5 rounded-full shadow-sm">
+                        {poem.category}
+                      </span>
                     </div>
                   </div>
 
-                  <div className="absolute top-6 left-6">
-                    <span className="bg-vintage-paper/90 backdrop-blur-md text-vintage-ink text-[10px] font-bold uppercase tracking-[0.2em] px-4 py-1.5 rounded-full shadow-sm">
-                      {poem.category}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="px-2">
-                  <h3 className="font-playfair text-2xl font-bold leading-tight group-hover:text-vintage-accent transition-colors duration-300 mb-3">
-                    {poem.title}
-                  </h3>
-                  <div className="flex items-center gap-3 text-xs opacity-50 uppercase tracking-widest font-bold">
-                    <div className="w-4 h-[1px] bg-vintage-ink" />
-                    <span>{poem.author_name}</span>
+                  <div className="px-2">
+                    <h3 className="font-playfair text-2xl font-bold leading-tight group-hover:text-vintage-accent transition-colors duration-300 mb-3">
+                      {poem.title}
+                    </h3>
+                    <div className="flex items-center gap-3 text-xs opacity-50 uppercase tracking-widest font-bold">
+                      <div className="w-4 h-[1px] bg-vintage-ink" />
+                      <span>{poem.author_name}</span>
+                    </div>
                   </div>
                 </div>
               </motion.div>
