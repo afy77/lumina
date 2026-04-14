@@ -31,10 +31,14 @@ export function Landing() {
   const fetchPoems = async () => {
     setIsLoading(true);
     try {
+      // Adding a small delay or unique param to bypass any potential caching
       let query = supabase
         .from('public_poems')
         .select('*')
         .order('created_at', { ascending: false });
+
+      // Force no-cache by adding a filter that is always true but unique
+      // query = query.filter('id', 'neq', '00000000-0000-0000-0000-000000000000');
 
       if (selectedCategory !== 'Semua') {
         query = (query as any).eq('category', selectedCategory);
@@ -47,6 +51,7 @@ export function Landing() {
       const { data, error } = await query;
       
       if (error) throw error;
+      console.log('Lumina: Fetched', data?.length, 'public poems.');
       setPoems(data || []);
     } catch (error) {
       console.error('Error fetching poems:', error);
@@ -77,7 +82,7 @@ export function Landing() {
     <div className="w-full min-h-screen bg-vintage-paper bg-paper-texture font-cormorant text-vintage-ink selection:bg-vintage-accent selection:text-vintage-paper">
       
       {/* Premium Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 glass-vintage border-b border-vintage-border/10 px-6 py-4">
+      <nav className="fixed top-0 left-0 right-0 z-50 glass-vintage border-b border-vintage-border/10 px-6 py-3 md:py-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="font-cinzel text-2xl font-bold tracking-widest text-vintage-ink">
             LUMINA
@@ -232,7 +237,7 @@ export function Landing() {
       <section className="relative w-full min-h-screen md:min-h-[85vh] flex flex-col items-center justify-center text-center px-6 border-b border-vintage-border bg-[radial-gradient(circle_at_center,_var(--color-vintage-paper-dark)_0%,_transparent_100%)]">
         <div className="absolute inset-0 bg-paper-texture opacity-30 pointer-events-none" />
         
-        <div className="relative z-10 max-w-4xl mx-auto py-20">
+        <div className="relative z-10 max-w-4xl mx-auto pt-32 pb-20 md:py-20">
           <p className="mb-4 tracking-[0.5em] uppercase text-[10px] font-bold opacity-40">Sastra Digital Terkurasi</p>
           <h1 className="font-cinzel text-6xl sm:text-7xl md:text-9xl font-bold mb-8 tracking-tighter text-vintage-ink">LUMINA</h1>
           <div className="w-16 h-px bg-vintage-accent mx-auto mb-8 opacity-40" />
@@ -246,7 +251,7 @@ export function Landing() {
         </div>
       </section>
 
-      <div id="explore" className="w-full max-w-7xl mx-auto px-4 md:px-6 py-20 md:py-32">
+      <div id="explore" className="w-full max-w-7xl mx-auto px-4 md:px-6 pt-52 pb-20 md:py-32 scroll-mt-60">
         <div className="text-center mb-16">
           <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-vintage-accent opacity-60 mb-2 block">The Community</span>
           <h2 className="font-playfair text-4xl md:text-5xl font-bold uppercase tracking-tight">Karya-Karya Pilihan</h2>
@@ -285,7 +290,7 @@ export function Landing() {
 
         {/* Poems Grid */}
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-32 opacity-20">
+          <div className="flex flex-col items-center justify-center py-32 opacity-20 min-h-[400px]">
             <Loader2 size={48} className="animate-spin mb-6" />
             <p className="tracking-[0.5em] uppercase text-xs font-bold">Menyusun Kata...</p>
           </div>

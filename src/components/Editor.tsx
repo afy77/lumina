@@ -34,7 +34,7 @@ export function Editor() {
     try {
       let finalImageUrl = shareForm.imageUrl;
       
-      // 1. Upload Image if file exists
+      // 1. Upload Image if file exists (Only for new image)
       if (shareForm.image && !useUrl) {
         const fileExt = shareForm.image.name.split('.').pop();
         const fileName = `${Math.random()}.${fileExt}`;
@@ -53,29 +53,127 @@ export function Editor() {
         finalImageUrl = publicUrl;
       }
 
-      // 2. Insert into DB
-      const { error: insertError } = await supabase
-        .from('public_poems')
-        .insert({
-          title: activeDoc.title || 'Tanpa Judul',
-          content: activeDoc.content,
-          author_name: shareForm.author,
-          category: activeDoc.category,
-          cover_url: finalImageUrl,
+      const poemData = {
+        title: activeDoc.title || 'Tanpa Judul',
+        content: activeDoc.content,
+        author_name: shareForm.author,
+        category: activeDoc.category,
+        cover_url: finalImageUrl,
+      };
+
+      if (activeDoc.supabaseId) {
+        // UPDATE EXISTING
+        console.log('Lumina: Updating existing poem...', activeDoc.supabaseId);
+        const { error: updateError } = await supabase
+          .from('public_poems')
+          .update(poemData)
+          .eq('id', activeDoc.supabaseId);
+
+        if (updateError) {
+          console.error('Lumina Sync Error (Update):', updateError);
+          throw new Error(updateError.message);
+        }
+        alert('Perubahan berhasil disimpan di Lumina!');
+      } else {
+        // INSERT NEW
+        console.log('Lumina: Creating new public poem...');
+        const { data: newData, error: insertError } = await supabase
+          .from('public_poems')
+          .insert(poemData)
+          .select()
+          .single();
+
+        if (insertError) {
+          console.error('Lumina Sync Error (Insert):', insertError);
+          throw new Error(insertError.message);
+        }
+        
+        if (!newData) throw new Error('Database returned empty data.');
+
+        // Save Supabase ID to local doc
+        updateDocument(activeDoc.id, { 
+          supabaseId: newData.id, 
+          isPublished: true,
+          authorName: shareForm.author,
+          coverUrl: finalImageUrl
         });
+        alert('Karyamu kini telah tayang di Lumina!');
+      }
 
-      if (insertError) throw insertError;
-
-      alert('Puisi berhasil dibagikan ke komunitas!');
       setIsShareModalOpen(false);
-      setShareForm({ author: '', image: null, imageUrl: '' });
       setImagePreview(null);
     } catch (error: any) {
-      alert('Gagal membagikan puisi: ' + error.message);
+      alert('Gagal memproses puisi: ' + error.message);
     } finally {
       setIsSharing(false);
     }
   };
+
+  const handleUnpublish = async () => {
+    if (!activeDoc || !activeDoc.supabaseId) return;
+    
+    const confirmDelete = confirm('Apakah Anda yakin ingin menarik puisi ini dari publik? Puisi akan tetap tersimpan di editor lokal Anda namun tidak akan terlihat di komunitas.');
+    if (!confirmDelete) return;
+
+    setIsSharing(true);
+    try {
+      console.log('Lumina Sync: Attempting to delete record with ID:', activeDoc.supabaseId);
+      let { error, count } = await supabase
+        .from('public_poems')
+        .delete({ count: 'exact' })
+        .eq('id', activeDoc.supabaseId);
+
+      // FALLBACK: If ID doesn't match, try matching by Title and Author
+      if (!error && count === 0) {
+        console.log('Lumina Sync: ID mismatch, trying fallback match (Title + Author)...');
+        const fallbackDelete = await supabase
+          .from('public_poems')
+          .delete({ count: 'exact' })
+          .match({ 
+            title: activeDoc.title || 'Tanpa Judul', 
+            author_name: activeDoc.authorName || shareForm.author 
+          });
+        error = fallbackDelete.error;
+        count = fallbackDelete.count;
+      }
+
+      if (error) {
+        console.error('Lumina Sync Error (Delete):', error);
+        throw new Error(error.message);
+      }
+
+      if (count === 0) {
+        console.warn('Lumina Sync: No record was deleted even with fallback.');
+        alert('Karya tidak ditemukan di server. Pastikan ijin RLS DELETE sudah di set ke TRUE di Supabase.');
+      } else {
+        alert('Puisi telah ditarik dari publikasi.');
+      }
+
+      updateDocument(activeDoc.id, { 
+        supabaseId: '', 
+        isPublished: false 
+      });
+      setIsShareModalOpen(false);
+    } catch (error: any) {
+      console.error('Lumina Action Error:', error);
+      alert('Gagal menarik publikasi: ' + error.message);
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
+  // Pre-fill form when modal opens
+  useEffect(() => {
+    if (isShareModalOpen && activeDoc) {
+      setShareForm({
+        author: activeDoc.authorName || '',
+        image: null,
+        imageUrl: activeDoc.coverUrl || ''
+      });
+      setImagePreview(activeDoc.coverUrl || null);
+      if (activeDoc.coverUrl) setUseUrl(true);
+    }
+  }, [isShareModalOpen, activeDocId]);
 
   useEffect(() => {
     if (activeDoc) {
@@ -344,7 +442,9 @@ export function Editor() {
               className="relative w-full max-w-md bg-paper-texture bg-vintage-paper rounded-3xl shadow-2xl overflow-hidden border border-vintage-border"
             >
               <div className="p-6 border-b border-vintage-border flex justify-between items-center">
-                <h3 className="font-cinzel font-bold text-lg tracking-widest">Bagikan Karya</h3>
+                <h3 className="font-cinzel font-bold text-lg tracking-widest">
+                  {activeDoc.supabaseId ? 'Kelola Publikasi' : 'Bagikan Karya'}
+                </h3>
                 <button onClick={() => setIsShareModalOpen(false)} className="opacity-40 hover:opacity-100 transition-opacity">
                   <X size={20} />
                 </button>
@@ -420,7 +520,7 @@ export function Editor() {
                   </div>
                 </div>
 
-                <div className="pt-4">
+                <div className="pt-4 space-y-3">
                   <button 
                     onClick={handleShare}
                     disabled={isSharing || !shareForm.author.trim()}
@@ -429,15 +529,25 @@ export function Editor() {
                     {isSharing ? (
                       <>
                         <Loader2 size={18} className="animate-spin" />
-                        Mengirim...
+                        Memproses...
                       </>
                     ) : (
                       <>
                         <Send size={18} />
-                        Publikasikan Karya
+                        {activeDoc.supabaseId ? 'Perbarui Karya' : 'Publikasikan Karya'}
                       </>
                     )}
                   </button>
+
+                  {activeDoc.supabaseId && (
+                    <button 
+                      onClick={handleUnpublish}
+                      disabled={isSharing}
+                      className="w-full py-3 text-red-700 font-bold uppercase tracking-widest text-[10px] hover:bg-red-50 rounded-full transition-all border border-transparent hover:border-red-100 disabled:opacity-50"
+                    >
+                      Tarik dari Publikasi
+                    </button>
+                  )}
                 </div>
               </div>
             </motion.div>

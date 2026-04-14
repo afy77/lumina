@@ -15,6 +15,10 @@ export interface Document {
   tags: string[];
   isFavorite: boolean;
   isPinned: boolean;
+  isPublished?: boolean;
+  authorName?: string;
+  coverUrl?: string;
+  supabaseId?: string;
 }
 
 interface AppState {
@@ -64,6 +68,10 @@ export const useStore = create<AppState>()(
           tags: ['welcome'],
           isFavorite: true,
           isPinned: true,
+          isPublished: false,
+          authorName: '',
+          coverUrl: '',
+          supabaseId: '',
         }
       ],
       activeDocId: 'welcome-doc',
@@ -90,6 +98,10 @@ export const useStore = create<AppState>()(
           tags: [],
           isFavorite: false,
           isPinned: false,
+          isPublished: false,
+          authorName: '',
+          coverUrl: '',
+          supabaseId: '',
         };
         set((state) => ({
           documents: [newDoc, ...state.documents],
