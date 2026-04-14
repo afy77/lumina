@@ -406,7 +406,10 @@ export function Landing() {
           <a href="#" className="hover:text-vintage-accent transition-colors">Arsip</a>
           <a href="#" className="hover:text-vintage-accent transition-colors">Kebijakan</a>
         </div>
-        <p className="text-[10px] opacity-20 uppercase tracking-[0.2em] font-bold pt-8">Disusun dengan jiwa &copy; 2026</p>
+        <p className="text-[10px] opacity-20 uppercase tracking-[0.2em] font-bold pt-8 flex items-center justify-center gap-4">
+          Disusun dengan jiwa &copy; 2026
+          <Link to="/admin" className="hover:opacity-100 transition-opacity">Moderasi</Link>
+        </p>
       </footer>
     </div>
   );
