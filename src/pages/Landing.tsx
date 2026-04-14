@@ -251,7 +251,7 @@ export function Landing() {
         </div>
       </section>
 
-      <div id="explore" className="w-full max-w-7xl mx-auto px-4 md:px-6 pt-[400px] pb-20 md:py-32 scroll-mt-[400px]">
+      <div id="explore" className="w-full max-w-7xl mx-auto px-4 md:px-6 pt-[500px] pb-20 md:py-32 scroll-mt-[500px]">
         <div className="text-center mb-16">
           <span className="text-[10px] font-bold uppercase tracking-[0.4em] text-vintage-accent opacity-60 mb-2 block">The Community</span>
           <h2 className="font-playfair text-4xl md:text-5xl font-bold uppercase tracking-tight">Karya-Karya Pilihan</h2>
