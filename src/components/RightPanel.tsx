@@ -146,21 +146,34 @@ export function RightPanel() {
               <h3 className="text-xs font-bold uppercase tracking-widest text-vintage-ink-light mb-4 opacity-70">Pilih Nuansa</h3>
               <div className="grid grid-cols-2 gap-2">
                 {moods.map((mood) => (
-                  <button
-                    key={mood.name}
-                    onClick={() => setMood(mood.name)}
-                    onDoubleClick={() => toggleAudioMute()}
-                    className={cn(
-                      "flex flex-col items-center justify-center gap-2 p-3 rounded-xl border transition-all duration-300 select-none",
-                      currentMood === mood.name 
-                        ? "bg-vintage-ink text-vintage-paper border-vintage-ink shadow-md" 
-                        : "border-vintage-border hover:bg-black/5 text-vintage-ink/70"
+                  <div key={mood.name} className="relative group">
+                    <button
+                      onClick={() => setMood(mood.name as any)}
+                      onDoubleClick={() => toggleAudioMute()}
+                      className={cn(
+                        "w-full flex flex-col items-center justify-center gap-2 p-3 rounded-xl border transition-all duration-300 select-none",
+                        currentMood === mood.name 
+                          ? "bg-vintage-ink text-vintage-paper border-vintage-ink shadow-md" 
+                          : "border-vintage-border hover:bg-black/5 text-vintage-ink/70"
+                      )}
+                      title="Pilih Atmosfer"
+                    >
+                      <mood.icon size={20} />
+                      <span className="text-xs font-medium">{mood.name}</span>
+                    </button>
+                    {currentMood === mood.name && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleAudioMute();
+                        }}
+                        className="absolute top-2 right-2 p-1.5 rounded-full bg-black/20 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/40"
+                        title={isAudioMuted ? "Mainkan Suara" : "Jeda Suara"}
+                      >
+                        {isAudioMuted ? <VolumeX size={12} /> : <Volume2 size={12} />}
+                      </button>
                     )}
-                    title="Klik 2x untuk mute/pause"
-                  >
-                    <mood.icon size={20} />
-                    <span className="text-xs font-medium">{mood.name}</span>
-                  </button>
+                  </div>
                 ))}
               </div>
             </div>

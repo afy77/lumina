@@ -34,6 +34,8 @@ interface AppState {
   userDictionary: string[];
   isSidebarOpen: boolean;
   isRightPanelOpen: boolean;
+  lastAuthorName: string;
+  spellCheckEnabled: boolean;
   
   // Actions
   addDocument: (category?: Category) => void;
@@ -52,6 +54,7 @@ interface AppState {
   removeFromDictionary: (word: string) => void;
   setSidebarOpen: (open: boolean) => void;
   setRightPanelOpen: (open: boolean) => void;
+  setLastAuthorName: (name: string) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -86,6 +89,7 @@ export const useStore = create<AppState>()(
       spellCheckEnabled: true,
       isSidebarOpen: true,
       isRightPanelOpen: true,
+      lastAuthorName: '',
 
       addDocument: (category = 'Draft Bebas') => {
         const newDoc: Document = {
@@ -145,6 +149,7 @@ export const useStore = create<AppState>()(
       })),
       setSidebarOpen: (open) => set({ isSidebarOpen: open }),
       setRightPanelOpen: (open) => set({ isRightPanelOpen: open }),
+      setLastAuthorName: (name) => set({ lastAuthorName: name }),
     }),
     {
       name: 'lumina-storage',

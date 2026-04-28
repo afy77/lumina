@@ -68,7 +68,7 @@ html, body {
   @apply bg-vintage-paper text-vintage-ink font-cormorant selection:bg-vintage-accent selection:text-vintage-paper overflow-x-hidden max-w-full;
   width: 100vw;
   scroll-behavior: smooth;
-  scroll-padding-top: 90px;
+  scroll-padding-top: 180px;
 }
 
 /* Custom scrollbar for vintage feel */

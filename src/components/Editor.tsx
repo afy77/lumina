@@ -6,9 +6,10 @@ import { Maximize2, Minimize2, Star, Pin, Settings2, Plus, Share, Image as Image
 import { motion, AnimatePresence } from 'motion/react';
 import { isCommonWord } from '../lib/dictionary';
 import { supabase } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 export function Editor() {
-  const { documents, activeDocId, updateDocument, focusMode, setFocusMode, typewriterMode, selectedText, setSelectedText, userDictionary, spellCheckEnabled, addToDictionary, isSidebarOpen, isRightPanelOpen, setSidebarOpen, setRightPanelOpen } = useStore();
+  const { documents, activeDocId, updateDocument, focusMode, setFocusMode, typewriterMode, selectedText, setSelectedText, userDictionary, spellCheckEnabled, addToDictionary, isSidebarOpen, isRightPanelOpen, setSidebarOpen, setRightPanelOpen, lastAuthorName, setLastAuthorName } = useStore();
   const activeDoc = documents.find(d => d.id === activeDocId);
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -73,7 +74,7 @@ export function Editor() {
           console.error('Lumina Sync Error (Update):', updateError);
           throw new Error(updateError.message);
         }
-        alert('Perubahan berhasil disimpan di Lumina!');
+        toast.success('Perubahan berhasil disimpan di Lumina!');
       } else {
         // INSERT NEW
         console.log('Lumina: Creating new public poem...');
@@ -97,13 +98,14 @@ export function Editor() {
           authorName: shareForm.author,
           coverUrl: finalImageUrl
         });
-        alert('Karyamu kini telah tayang di Lumina!');
+        toast.success('Karyamu kini telah tayang di Lumina!');
       }
-
+      
+      setLastAuthorName(shareForm.author);
       setIsShareModalOpen(false);
       setImagePreview(null);
     } catch (error: any) {
-      alert('Gagal memproses puisi: ' + error.message);
+      toast.error('Gagal memproses puisi: ' + error.message);
     } finally {
       setIsSharing(false);
     }
@@ -112,9 +114,27 @@ export function Editor() {
   const handleUnpublish = async () => {
     if (!activeDoc || !activeDoc.supabaseId) return;
     
-    const confirmDelete = confirm('Apakah Anda yakin ingin menarik puisi ini dari publik? Puisi akan tetap tersimpan di editor lokal Anda namun tidak akan terlihat di komunitas.');
-    if (!confirmDelete) return;
+    toast((t) => (
+      <div className="flex flex-col gap-4 p-2 text-center">
+        <span className="font-playfair text-lg">Tarik karya ini dari publik?</span>
+        <span className="text-xs opacity-70">Puisi akan tetap tersimpan di editor lokal Anda namun tidak akan terlihat di komunitas.</span>
+        <div className="flex gap-2 justify-center mt-2">
+          <button onClick={() => toast.dismiss(t.id)} className="px-4 py-2 border rounded-full text-xs">Batal</button>
+          <button 
+            onClick={async () => {
+              toast.dismiss(t.id);
+              await confirmUnpublish();
+            }} 
+            className="px-4 py-2 bg-red-600 text-white rounded-full text-xs"
+          >
+            Ya, Tarik Karya
+          </button>
+        </div>
+      </div>
+    ), { duration: Infinity });
+  };
 
+  const confirmUnpublish = async () => {
     setIsSharing(true);
     try {
       console.log('Lumina Sync: Attempting to delete record with ID:', activeDoc.supabaseId);
@@ -144,9 +164,9 @@ export function Editor() {
 
       if (count === 0) {
         console.warn('Lumina Sync: No record was deleted even with fallback.');
-        alert('Karya tidak ditemukan di server. Pastikan ijin RLS DELETE sudah di set ke TRUE di Supabase.');
+        toast.error('Karya tidak ditemukan di server.');
       } else {
-        alert('Puisi telah ditarik dari publikasi.');
+        toast.success('Puisi telah ditarik dari publikasi.');
       }
 
       updateDocument(activeDoc.id, { 
@@ -156,7 +176,7 @@ export function Editor() {
       setIsShareModalOpen(false);
     } catch (error: any) {
       console.error('Lumina Action Error:', error);
-      alert('Gagal menarik publikasi: ' + error.message);
+      toast.error('Gagal menarik publikasi: ' + error.message);
     } finally {
       setIsSharing(false);
     }
@@ -166,14 +186,14 @@ export function Editor() {
   useEffect(() => {
     if (isShareModalOpen && activeDoc) {
       setShareForm({
-        author: activeDoc.authorName || '',
+        author: activeDoc.authorName || lastAuthorName || '',
         image: null,
         imageUrl: activeDoc.coverUrl || ''
       });
       setImagePreview(activeDoc.coverUrl || null);
       if (activeDoc.coverUrl) setUseUrl(true);
     }
-  }, [isShareModalOpen, activeDocId]);
+  }, [isShareModalOpen, activeDocId, lastAuthorName]);
 
   useEffect(() => {
     if (activeDoc) {
