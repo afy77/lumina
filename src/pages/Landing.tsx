@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, PenTool, Sparkles, Heart, Share2, ArrowRight, Loader2, X, Menu } from 'lucide-react';
+import { Search, PenTool, Sparkles, Heart, Share2, ArrowRight, Loader2, X, Menu, Instagram, Download } from 'lucide-react';
+import html2canvas from 'html2canvas';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { Category } from '../store/useStore';
@@ -32,6 +33,8 @@ export function Landing() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
+  const poemRef = useRef<HTMLDivElement>(null);
   const ITEMS_PER_PAGE = 12;
 
   const fetchPoems = async (isLoadMore = false) => {
@@ -159,6 +162,52 @@ export function Landing() {
     }
   };
 
+  const downloadImage = (dataUrl: string, title: string) => {
+    const link = document.createElement('a');
+    link.download = `${title.replace(/\s+/g, '-').toLowerCase()}-lumina-story.png`;
+    link.href = dataUrl;
+    link.click();
+  };
+
+  const handleExportStory = async () => {
+    if (!poemRef.current || !selectedPoem) return;
+    setIsExporting(true);
+    try {
+      const canvas = await html2canvas(poemRef.current, {
+        scale: 2,
+        backgroundColor: '#f4ecd8',
+        useCORS: true,
+      });
+      
+      canvas.toBlob(async (blob) => {
+        if (!blob) throw new Error('Gagal memproses gambar');
+        
+        const file = new File([blob], `${selectedPoem.title}-lumina.png`, { type: 'image/png' });
+        
+        if (navigator.share && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: selectedPoem.title,
+            });
+          } catch (err) {
+            console.error('User cancelled native share, fallback to download:', err);
+            downloadImage(canvas.toDataURL('image/png'), selectedPoem.title);
+          }
+        } else {
+          // Fallback for desktop or unsupported browsers
+          downloadImage(canvas.toDataURL('image/png'), selectedPoem.title);
+          alert('Gambar Story berhasil diunduh! Silakan upload ke IG/WA/TikTok Anda.');
+        }
+        setIsExporting(false);
+      }, 'image/png');
+    } catch (err) {
+      console.error(err);
+      setIsExporting(false);
+      alert('Gagal membuat gambar story.');
+    }
+  };
+
   // Reset body scroll on unmount or selectedPoem
   useEffect(() => {
     document.body.style.overflow = selectedPoem ? 'hidden' : '';
@@ -276,7 +325,7 @@ export function Landing() {
                 <div className="h-px bg-vintage-ink/10 mb-8" />
                 <pre className="font-cormorant text-xl leading-relaxed whitespace-pre-wrap italic">{selectedPoem.content}</pre>
                 
-                <div className="mt-12 flex items-center gap-4">
+                <div className="mt-12 flex flex-wrap items-center gap-4">
                   <button 
                     onClick={() => handleLike(selectedPoem)}
                     className={cn(
@@ -294,7 +343,15 @@ export function Landing() {
                     className="flex items-center gap-2 px-6 py-3 rounded-full border border-vintage-border hover:border-vintage-ink hover:bg-black/5 text-xs font-bold uppercase tracking-widest transition-all"
                   >
                     <Share2 size={16} />
-                    Bagikan
+                    Link
+                  </button>
+                  <button 
+                    onClick={handleExportStory}
+                    disabled={isExporting}
+                    className="flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 text-white border-none text-xs font-bold uppercase tracking-widest transition-all hover:scale-105 disabled:opacity-50 disabled:scale-100 shadow-lg"
+                  >
+                    {isExporting ? <Loader2 size={16} className="animate-spin" /> : <Instagram size={16} />}
+                    Share to Story
                   </button>
                 </div>
               </div>
@@ -302,6 +359,50 @@ export function Landing() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Hidden container for 9:16 Story Export */}
+      {selectedPoem && (
+        <div className="fixed -left-[9999px] top-0 pointer-events-none">
+          <div 
+            ref={poemRef} 
+            className="w-[1080px] h-[1920px] bg-vintage-paper bg-paper-texture flex flex-col relative overflow-hidden"
+            style={{ fontFamily: "'Cormorant Garamond', serif" }}
+          >
+            {/* Background Image with blur & blend mode for aesthetic */}
+            {selectedPoem.cover_url ? (
+              <>
+                <img src={selectedPoem.cover_url} className="absolute inset-0 w-full h-full object-cover opacity-15 mix-blend-multiply" crossOrigin="anonymous" alt="bg" />
+                <div className="absolute inset-0 backdrop-blur-[100px] bg-vintage-paper/40" />
+              </>
+            ) : (
+              <div className="absolute inset-0 bg-black/5" />
+            )}
+            
+            <div className="relative z-10 flex flex-col justify-center h-full p-24 text-center">
+              <div className="mb-12">
+                <span className="text-2xl font-bold uppercase tracking-[0.5em] text-vintage-accent border border-vintage-accent/30 px-6 py-2 rounded-full">{selectedPoem.category}</span>
+              </div>
+              <h2 className="font-playfair text-[5rem] font-bold mb-12 text-vintage-ink leading-tight">{selectedPoem.title}</h2>
+              <div className="w-32 h-1 bg-vintage-ink/20 mx-auto mb-10" />
+              <p className="text-4xl italic mb-20 font-serif text-vintage-ink/60">Oleh {selectedPoem.author_name}</p>
+              
+              <div className="bg-white/40 backdrop-blur-md p-16 rounded-[3rem] border border-vintage-border shadow-2xl mx-10 relative">
+                <div className="absolute -top-10 -left-10 text-[10rem] text-vintage-ink/10 font-playfair leading-none">"</div>
+                <pre className="font-cormorant text-[2.5rem] leading-[1.8] whitespace-pre-wrap italic text-vintage-ink text-left">
+                  {selectedPoem.content.length > 600 ? selectedPoem.content.substring(0, 600) + '...\n\n(Baca selengkapnya di Lumina)' : selectedPoem.content}
+                </pre>
+              </div>
+            </div>
+
+            <div className="absolute bottom-20 left-0 right-0 text-center z-10 flex flex-col items-center gap-6">
+              <p className="text-2xl font-bold uppercase tracking-[0.3em] opacity-50">Baca selengkapnya di</p>
+              <div className="inline-flex items-center gap-4 bg-vintage-ink text-vintage-paper px-10 py-5 rounded-full shadow-2xl">
+                <span className="font-cinzel text-4xl font-bold tracking-widest">LUMINA</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content Area */}
       <main id="landing-main-scroll" className="flex-1 h-screen overflow-y-auto relative hide-scrollbar">
